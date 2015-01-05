@@ -1,95 +1,137 @@
 (function($) {
+  'use strict';
 
-  var el = $('.morph-btn')
-      t = el.offset().top,
-      l = el.offset().left,
-      temp = 0;
+  var morphDefined = {
+    morphfull: false,
+    left: '50%',
+    top: '50%',
+    width: '600px',
+    height: '300px',
+  };
+  morphDefined['margin-top'] = '-' + parseInt(morphDefined.height, 10) / 2 + 'px';
+  morphDefined['margin-left'] = '-' + parseInt(morphDefined.width, 10) / 2 + 'px';
 
-  var body = $('body');
+  function Morph(btn, el) {
 
-  $('.morph-btn').click(function(event) {
-    event.preventDefault();
+    setModal();
+    init(btn, el);
 
-    var morphFull = {
-      morph: false,
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100%'
-    };
+    function init(btn, el) {
+      var el = $(el),
+          btn = $(btn);
 
-    var morphDefined = {
-      morph: true,
-      left: '50%',
-      top: '50%',
-      width: '600px',
-      height: '300px',
-    };
-    morphDefined['margin-top'] = '-' + parseInt(morphDefined.height, 10) / 2 + 'px';
-    morphDefined['margin-left'] = '-' + parseInt(morphDefined.width, 10) / 2 + 'px';
+      //morphSize();
 
-    $(this).hide();
-
-    $('.wrapper').css({
-      'z-index': 2,
-      position: 'fixed',
-      left: l + 'px',
-      top: temp + 'px',
-      width: el.width(),
-      height: el.height(),
-      visibility: 'visible'
-    })
-      .velocity(morphDefined, 'easeInOutCubic', function() {
-        //body.addClass('no-scroll');
-
-        $(this).find('.contain').velocity('fadeIn');
+      btn.click(function(event) {
+        event.preventDefault();
+        open(el, $(this));
       });
-  });
 
-  $('.morph-close').click(function(event) {
-    event.preventDefault();
-
-    body.removeClass('no-scroll');
-
-    $('.contain').velocity('fadeOut', function() {
-      $('.wrapper').velocity({
-        top: temp + 'px',
-        left: l + 'px',
-        width: el.width(),
-        height: el.height(),
-        'margin-top': 0,
-        'margin-left': 0,
-        'z-index': '-1',
-      }, { easing: 'easeInOutCubic', visibility: 'hidden', complete: function() {
-          $('.morph-btn').show();
-        }
+      el.find('.morph-close').add('#morph-modal').click(function(event) {
+        event.preventDefault();
+        close(el, btn);
       });
-    });
-  });
-
-  $(window).scroll(function() {
-    temp = t - $(this).scrollTop() || t;
-  });
-  $(window).scroll();
-
-  $(window).resize(function() {
-    l = el.offset().left;
-  });
-
-  function Morphingbutton(container) {
-    var self = this,
-        container = container,
-        elOffsetTop = container.offset().top,
-        elOffsetLeft = container.offset().left,
-        temp = 0;
-
-    function open() {
-
     }
 
-    function close() {
+    function open(el, btn) {
+      noScroll(el);
+      noScroll($('body'));
+      openModal();
 
+      btn.css({ opacity: 0 });
+
+      el.css({
+        'margin-left': 0,
+        'margin-top': 0,
+        opacity: 1,
+        display: 'block',
+        width: btn.width(),
+        height: btn.height(),
+        'z-index': 2,
+        position: 'fixed',
+        left: btn.offset().left,
+        top: setBtnPosY(btn)
+      })
+      .velocity(morphDefined, 'easeInOutQuart', function() {
+        $(this).find('.morph-wrap').velocity('fadeIn', function() {
+          allowScroll(el);
+        });
+      });
+    }
+
+    function close(el, btn) {
+      noScroll(el);
+      noScroll($('body'));
+      closeModal();
+
+      el.find('.morph-wrap').velocity('fadeOut', function() {
+        el.velocity({
+          left: btn.offset().left,
+          top: setBtnPosY(btn),
+          width: btn.width(),
+          height: btn.height(),
+          'margin-left': 0,
+          'margin-top': 0,
+        }, 'easeInOutQuart', function() {
+          btn.css({ opacity: 1 });
+
+          $(this).velocity('fadeOut', function() {
+            allowScroll($('body'));
+            allowScroll(el);
+          });
+        });
+      });
+    }
+
+    function setBtnPosY(btn) {
+      return btn.offset().top - $(window).scrollTop() + 'px';
+    }
+
+    function setModal() {
+      if($('#morph-modal').length) return;
+
+      $('<div/>', {
+        'class': 'morph-modal',
+        id: 'morph-modal',
+        css: {
+          position: 'fixed',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          width: '100%',
+          display: 'none',
+          background: 'black',
+          opacity: '0',
+          'z-index': 1
+        }
+      }).appendTo('body');
+    }
+
+    function openModal(opacity) {
+      opacity = typeof opacity === 'undefined' ? '.3' : opacity.toString();
+
+      $('#morph-modal').velocity({
+        'opacity': opacity
+      }, { display: 'block' });
+    }
+
+    function closeModal() {
+      $('#morph-modal').velocity('fadeOut');
     }
   }
 
-})(jQuery);
+  function noScroll(el) {
+    el.css({ overflow: 'hidden' });
+  }
+
+  function allowScroll(el) {
+    el.css({ overflow: 'auto' });
+  }
+
+  window.Morph = Morph;
+
+}(jQuery));
+
+Morph('a.morph-1', 'div.morph-1');
+Morph('a.morph-2', 'div.morph-2');
