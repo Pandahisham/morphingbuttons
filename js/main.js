@@ -1,30 +1,27 @@
 (function($) {
   'use strict';
 
-  var morphDefined = {
-    morphfull: false,
-    left: '50%',
-    top: '50%',
-    width: '600px',
-    height: '300px',
-  };
-  morphDefined['margin-top'] = '-' + parseInt(morphDefined.height, 10) / 2 + 'px';
-  morphDefined['margin-left'] = '-' + parseInt(morphDefined.width, 10) / 2 + 'px';
+  function Morph(btn, el, options) {
 
-  function Morph(btn, el) {
+    var _options = options || {},
+        _defaultOptions = {
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%'
+        };
 
     setModal();
-    init(btn, el);
+    init(btn, el, _options);
 
-    function init(btn, el) {
+    function init(btn, el, options) {
       var el = $(el),
-          btn = $(btn);
-
-      //morphSize();
+          btn = $(btn),
+          options = extendOptions(options);
 
       btn.click(function(event) {
         event.preventDefault();
-        open(el, $(this));
+        open(el, $(this), options);
       });
 
       el.find('.morph-close').add('#morph-modal').click(function(event) {
@@ -33,7 +30,7 @@
       });
     }
 
-    function open(el, btn) {
+    function open(el, btn, options) {
       noScroll(el);
       noScroll($('body'));
       openModal();
@@ -52,7 +49,7 @@
         left: btn.offset().left,
         top: setBtnPosY(btn)
       })
-      .velocity(morphDefined, 'easeInOutQuart', function() {
+      .velocity(options, 'easeInOutQuart', function() {
         $(this).find('.morph-wrap').velocity('fadeIn', function() {
           allowScroll(el);
         });
@@ -85,6 +82,21 @@
 
     function setBtnPosY(btn) {
       return btn.offset().top - $(window).scrollTop() + 'px';
+    }
+
+    function extendOptions(obj) {
+      if(obj.width && obj.width !== '100%') {
+        obj['margin-top'] = '-' + parseInt(obj.height, 10) / 2 + 'px';
+        obj.top = '50%';
+      }
+
+      if(obj.height && obj.height !== '100%') {
+        obj['margin-left'] = '-' + parseInt(obj.width, 10) / 2 + 'px';
+        obj.left = '50%';
+      }
+
+      obj = $.extend(_defaultOptions, obj);
+      return obj;
     }
 
     function setModal() {
@@ -133,5 +145,5 @@
 
 }(jQuery));
 
-Morph('a.morph-1', 'div.morph-1');
+Morph('a.morph-1', 'div.morph-1', {width: '500px', height: '500px'});
 Morph('a.morph-2', 'div.morph-2');
