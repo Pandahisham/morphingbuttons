@@ -21,11 +21,15 @@
 
       btn.click(function(event) {
         event.preventDefault();
+        if(isAnimating()) return;
+
         open(el, $(this), options);
       });
 
       el.find('.morph-close').add('#morph-modal').click(function(event) {
         event.preventDefault();
+        if(isAnimating()) return;
+
         close(el, btn);
       });
     }
@@ -139,6 +143,10 @@
 
   function allowScroll(el) {
     el.css({ overflow: 'auto' });
+  }
+
+  function isAnimating() {
+    if($('.velocity-animating').length) return true;
   }
 
   window.Morph = Morph;
